@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RewardXP - Ganhe Dinheiro Real</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .gradient-text { background: linear-gradient(135deg, #16a34a 0%, #f59e0b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glass-effect { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .survey-card { transition: all 0.3s ease; }
+        .survey-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .confetti { position: fixed; width: 10px; height: 10px; background-color: #f59e0b; animation: fall linear forwards; z-index: 9999; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+        .loading { border: 3px solid #f3f3f3; border-top: 3px solid #22c55e; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 900: '#14532d' },
+                        accent: { 500: '#f59e0b', 600: '#d97706' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans antialiased">
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 bg-white/90 backdrop-blur-md border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-2 cursor-pointer" onclick="showSection('home')">
+                    <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-accent-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <span class="text-2xl font-bold gradient-text">RewardXP</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <button onclick="showSection('dashboard')" class="text-gray-600 hover:text-brand-600 font-medium transition">Pesquisas</button>
+                    <button onclick="showSection('withdraw')" class="text-gray-600 hover:text-brand-600 font-medium transition">Sacar</button>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <div id="userStats" class="hidden md:flex items-center space-x-4 bg-gray-100 rounded-full px-4 py-2">
+                        <div class="flex items-center space-x-1 text-brand-600">
+                            <i class="fas fa-coins"></i>
+                            <span id="pointsDisplay" class="font-bold">0</span>
+                        </div>
+                        <div class="h-4 w-px bg-gray-300"></div>
+                        <div class="flex items-center space-x-1 text-accent-600">
+                            <span id="levelDisplay" class="font-bold text-sm">Bronze</span>
+                        </div>
+                    </div>
+                    
+                    <button id="loginBtn" onclick="toggleModal('authModal')" class="bg-brand-600 text-white px-6 py-2.5 rounded-full font-semibold hover:bg-brand-700 transition shadow-lg">
+                        Entrar
+                    </button>
+                    
+                    <button id="userMenuBtn" onclick="logout()" class="hidden w-10 h-10 rounded-full bg-gradient-to-r from-brand-500 to-accent-500 text-white font-bold shadow-lg hover:opacity-90 transition">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-20">
+        
+        <!-- Hero Section -->
+        <section id="home" class="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-gray-900 via-brand-900 to-brand-800">
+            <div class="absolute inset-0 overflow-hidden">
+                <div class="absolute -top-40 -right-40 w-96 h-96 bg-accent-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+                <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style="animation-delay: 2s"></div>
+            </div>
+
+            <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8">
+                    <div class="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
+                        </span>
+                        <span class="text-white/90 text-sm font-medium" id="liveUsers">+2.847 online agora</span>
+                    </div>
+                    
+                    <h1 class="text-5xl lg:text-7xl font-bold text-white leading-tight">
+                        Ganhe <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-400 to-accent-600">Dinheiro Real</span> pela sua Opinião
+                    </h1>
+                    
+                    <p class="text-xl text-gray-300 max-w-lg">
+                        Participe de pesquisas exclusivas, complete missões diárias e converta seus pontos em dinheiro via PayPal ou Pix.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button onclick="toggleModal('authModal')" class="bg-accent-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-accent-600 transition shadow-xl hover:shadow-2xl transform hover:-translate-y-1 flex items-center justify-center space-x-2">
+                            <span>Criar Conta Grátis</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center space-x-6 text-white/80 pt-4">
+                        <div class="flex -space-x-2">
+                            <img src="https://i.pravatar.cc/100?img=1" class="w-10 h-10 rounded-full border-2 border-brand-800" alt="User">
+                            <img src="https://i.pravatar.cc/100?img=2" class="w-10 h-10 rounded-full border-2 border-brand-800" alt="User">
+                            <img src="https://i.pravatar.cc/100?img=3" class="w-10 h-10 rounded-full border-2 border-brand-800" alt="User">
+                        </div>
+                        <div class="text-sm">
+                            <p class="font-semibold">+2 milhões de usuários</p>
+                            <div class="flex items-center space-x-1 text-yellow-400 text-xs">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                                <span class="text-white/60 ml-1">4.8/5 Trustpilot</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative lg:h-[600px] flex items-center justify-center">
+                    <div class="relative w-full max-w-md animate-pulse">
+                        <div class="absolute inset-0 bg-gradient-to-r from-brand-500 to-accent-500 rounded-3xl transform rotate-3 opacity-20 blur-xl"></div>
+                        <div class="relative bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+                            <div class="bg-gradient-to-r from-brand-600 to-brand-700 p-6 text-white">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <p class="text-brand-100 text-sm">Seu Saldo</p>
+                                        <h3 class="text-3xl font-bold">R$ <span id="demoBalance">127,50</span></h3>
+                                    </div>
+                                    <div class="bg-white/20 rounded-full p-2">
+                                        <i class="fas fa-wallet text-2xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-6 space-y-4">
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                                            <i class="fas fa-poll"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-gray-800">Pesquisa Premium</p>
+                                            <p class="text-sm text-gray-500">15 minutos • R$ 5,00</p>
+                                        </div>
+                                    </div>
+                                    <span class="bg-brand-500 text-white px-3 py-1 rounded-full text-xs font-bold">DISPONÍVEL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="hidden py-8 bg-gray-100 min-h-screen">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-gradient-to-r from-brand-600 to-brand-700 rounded-3xl p-8 text-white mb-8 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-2xl"></div>
+                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-center">
+                        <div>
+                            <h2 class="text-3xl font-bold mb-2">Bem-vindo, <span id="userName">...</span>! 👋</h2>
+                            <p class="text-brand-100">Nível <span id="userLevel">Bronze</span></p>
+                        </div>
+                        <div class="mt-4 md:mt-0 flex items-center space-x-4 bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+                            <div class="text-right">
+                                <p class="text-sm text-brand-100">Saldo Disponível</p>
+                                <p class="text-3xl font-bold">R$ <span id="userBalance">0,00</span></p>
+                            </div>
+                            <button onclick="showSection('withdraw')" class="bg-accent-500 hover:bg-accent-600 text-white px-6 py-3 rounded-xl font-bold transition shadow-lg">
+                                Sacar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-500 text-sm">Pontos</span>
+                            <i class="fas fa-bolt text-yellow-500"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900" id="todayPoints">0</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-500 text-sm">Pesquisas</span>
+                            <i class="fas fa-poll text-blue-500"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900" id="totalSurveys">0</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-500 text-sm">Sequência</span>
+                            <i class="fas fa-fire text-orange-500"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900" id="streakDays">0 dias</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-500 text-sm">Convidados</span>
+                            <i class="fas fa-users text-purple-500"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900" id="referralCount">0</p>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-2xl font-bold text-gray-900">Pesquisas Disponíveis</h3>
+                            <div id="loadingSurveys" class="loading"></div>
+                        </div>
+                        <div id="surveysList" class="space-y-4"></div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-br from-accent-500 to-accent-600 rounded-2xl p-6 text-white shadow-lg">
+                            <h4 class="font-bold text-lg mb-4 flex items-center">
+                                <i class="fas fa-gift mr-2"></i> Recompensa Diária
+                            </h4>
+                            <button onclick="claimDailyReward()" id="dailyClaimBtn" class="w-full bg-white text-accent-600 py-3 rounded-xl font-bold hover:bg-gray-100 transition">
+                                Resgatar 50 Pontos
+                            </button>
+                            <p class="text-xs text-center mt-2 text-white/80" id="dailyTimer"></p>
+                        </div>
+
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                            <h4 class="font-bold text-gray-900 mb-4">Progresso</h4>
+                            <div class="relative pt-1">
+                                <div class="flex mb-2 items-center justify-between">
+                                    <span class="text-xs font-semibold text-brand-600" id="xpText">0 / 1000 XP</span>
+                                    <span class="text-xs font-semibold text-brand-600" id="xpPercent">0%</span>
+                                </div>
+                                <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-brand-100">
+                                    <div id="xpBar" style="width:0%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-brand-500 transition-all duration-500"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Withdraw Section -->
+        <section id="withdraw" class="hidden py-20 bg-gray-50">
+            <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-gray-900 mb-4">Sacar Recompensas</h2>
+                    <p class="text-xl text-gray-600">Saldo disponível: <span class="text-brand-600 font-bold text-2xl">R$ <span id="withdrawBalance">0,00</span></span></p>
+                    <p class="text-sm text-gray-500 mt-2">Mínimo para saque: R$ 20,00</p>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow-xl p-8 border border-gray-200">
+                    <form onsubmit="handleWithdraw(event)" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pagamento</label>
+                            <div class="grid grid-cols-3 gap-4">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="method" value="paypal" class="peer sr-only" checked>
+                                    <div class="rounded-xl border-2 border-gray-200 p-4 hover:bg-gray-50 peer-checked:border-brand-500 peer-checked:bg-brand-50 transition text-center">
+                                        <i class="fab fa-paypal text-3xl text-blue-600 mb-2"></i>
+                                        <p class="font-semibold text-sm">PayPal</p>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="method" value="pix" class="peer sr-only">
+                                    <div class="rounded-xl border-2 border-gray-200 p-4 hover:bg-gray-50 peer-checked:border-brand-500 peer-checked:bg-brand-50 transition text-center">
+                                        <i class="fas fa-qrcode text-3xl text-green-600 mb-2"></i>
+                                        <p class="font-semibold text-sm">Pix</p>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="method" value="giftcard" class="peer sr-only">
+                                    <div class="rounded-xl border-2 border-gray-200 p-4 hover:bg-gray-50 peer-checked:border-brand-500 peer-checked:bg-brand-50 transition text-center">
+                                        <i class="fas fa-gift text-3xl text-purple-600 mb-2"></i>
+                                        <p class="font-semibold text-sm">Gift Card</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Valor (R$)</label>
+                            <select id="withdrawAmount" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none" required>
+                                <option value="20">R$ 20,00 (2000 pts)</option>
+                                <option value="50">R$ 50,00 (5000 pts)</option>
+                                <option value="100">R$ 100,00 (10000 pts)</option>
+                            </select>
+                        </div>
+
+                        <div id="pixField" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Chave Pix</label>
+                            <input type="text" id="pixKey" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="CPF, Email ou Celular">
+                        </div>
+
+                        <div id="paypalField">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email PayPal</label>
+                            <input type="email" id="paypalEmail" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="seu@email.com" required>
+                        </div>
+
+                        <button type="submit" id="withdrawBtn" class="w-full bg-brand-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-brand-700 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                            Solicitar Saque
+                        </button>
+                    </form>
+
+                    <div class="mt-8 border-t border-gray-200 pt-6">
+                        <h4 class="font-bold text-gray-900 mb-4">Histórico de Saques</h4>
+                        <div id="withdrawHistory" class="space-y-3">
+                            <p class="text-gray-500 text-center py-4">Nenhum saque realizado ainda</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleModal('authModal')"></div>
+        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 max-h-[90vh] overflow-y-auto">
+            <button onclick="toggleModal('authModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-brand-500 to-accent-500 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-4">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900" id="authTitle">Criar Conta</h2>
+                <p class="text-gray-600 mt-2">Ganhe R$ 5,00 de bônus ao se cadastrar!</p>
+            </div>
+
+            <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
+                <div id="nameField">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                    <input type="text" id="fullName" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Seu nome" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="authEmail" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="seu@email.com" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                    <input type="password" id="authPassword" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Mínimo 6 caracteres" minlength="6" required>
+                </div>
+                
+                <button type="submit" id="authBtn" class="w-full bg-brand-600 text-white py-3 rounded-xl font-bold hover:bg-brand-700 transition shadow-lg flex items-center justify-center space-x-2">
+                    <span id="authBtnText">Criar Conta</span>
+                    <div id="authLoading" class="loading hidden" style="width: 20px; height: 20px; border-width: 2px;"></div>
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-gray-600">
+                    Já tem conta? 
+                    <button onclick="toggleAuthMode()" class="text-brand-600 font-bold hover:underline">Entrar</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Survey Modal -->
+    <div id="surveyModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSurvey()"></div>
+        <div class="absolute inset-x-4 top-20 bottom-20 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="bg-gradient-to-r from-brand-600 to-brand-700 p-6 text-white flex justify-between items-center">
+                <div>
+                    <h3 id="surveyTitle" class="text-xl font-bold">Pesquisa</h3>
+                    <p class="text-brand-100 text-sm mt-1">Pergunta <span id="currentQ">1</span> de <span id="totalQ">5</span></p>
+                </div>
+                <button onclick="closeSurvey()" class="text-white/80 hover:text-white"><i class="fas fa-times text-2xl"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6" id="surveyContent"></div>
+            <div class="border-t border-gray-200 p-6 bg-gray-50 flex justify-between items-center">
+                <button onclick="closeSurvey()" class="text-gray-600 hover:text-gray-800 font-medium">Cancelar</button>
+                <button onclick="nextQuestion()" id="nextQBtn" class="bg-brand-600 text-white px-8 py-2 rounded-full font-bold hover:bg-brand-700 transition">Próxima</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center space-x-3 max-w-sm">
+        <i id="toastIcon" class="fas fa-check-circle text-green-400 text-xl"></i>
+        <div>
+            <p class="font-bold" id="toastTitle">Sucesso!</p>
+            <p class="text-sm text-gray-300" id="toastMessage">...</p>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://seu-projeto.supabase.co';
+        const SUPABASE_KEY = 'sua-chave-anon-aqui';
+        
+        let supabaseClient;
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch (e) {
+            console.error('Erro Supabase:', e);
+        }
+
+        let currentUser = null;
+        let currentSurvey = null;
+        let currentQuestion = 0;
+        let surveyAnswers = [];
+
+        async function checkAuth() {
+            if (!supabaseClient) return;
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                await loadUserData();
+                updateUIForLoggedUser();
+            }
+        }
+
+        async function loadUserData() {
+            if (!currentUser) return;
+            try {
+                let { data: profile, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (error && error.code === 'PGRST116') {
+                    const { data: newProfile } = await supabaseClient
+                        .from('profiles')
+                        .insert([{
+                            id: currentUser.id,
+                            email: currentUser.email,
+                            name: currentUser.user_metadata?.name || 'Usuário',
+                            points: 500,
+                            balance: 5.00,
+                            level: 'Bronze',
+                            surveys_completed: 0,
+                            streak_days: 1,
+                            xp: 0
+                        }])
+                        .select()
+                        .single();
+                    profile = newProfile;
+                    showToast('Bônus!', 'R$ 5,00 e 500 pontos de boas-vindas!', 'success');
+                }
+
+                document.getElementById('userName').textContent = profile.name;
+                document.getElementById('userLevel').textContent = profile.level;
+                document.getElementById('pointsDisplay').textContent = profile.points;
+                document.getElementById('userBalance').textContent = profile.balance.toFixed(2);
+                document.getElementById('withdrawBalance').textContent = profile.balance.toFixed(2);
+                document.getElementById('todayPoints').textContent = profile.points;
+                document.getElementById('totalSurveys').textContent = profile.surveys_completed;
+                document.getElementById('streakDays').textContent = profile.streak_days + ' dias';
+                
+                const xpNeeded = 1000;
+                const xpPercent = Math.min((profile.xp / xpNeeded) * 100, 100);
+                document.getElementById('xpText').textContent = `${profile.xp} / ${xpNeeded} XP`;
+                document.getElementById('xpPercent').textContent = Math.floor(xpPercent) + '%';
+                document.getElementById('xpBar').style.width = xpPercent + '%';
+
+                checkDailyReward(profile.last_daily_claim);
+                loadSurveys();
+            } catch (error) {
+                showToast('Erro', 'Erro ao carregar dados', 'error');
+            }
+        }
+
+        let isLoginMode = false;
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('authTitle').textContent = isLoginMode ? 'Entrar' : 'Criar Conta';
+            document.getElementById('authBtnText').textContent = isLoginMode ? 'Entrar' : 'Criar Conta';
+            document.getElementById('nameField').classList.toggle('hidden', isLoginMode);
+        }
+
+        async function handleAuth(e) {
+            e.preventDefault();
+            if (!supabaseClient) {
+                showToast('Erro', 'Configure o Supabase primeiro!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('authBtn');
+            const loading = document.getElementById('authLoading');
+            const btnText = document.getElementById('authBtnText');
+            
+            btn.disabled = true;
+            loading.classList.remove('hidden');
+            btnText.classList.add('hidden');
+
+            try {
+                const email = document.getElementById('authEmail').value;
+                const password = document.getElementById('authPassword').value;
+
+                if (isLoginMode) {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    currentUser = data.user;
+                } else {
+                    const name = document.getElementById('fullName').value;
+                    const { data, error } = await supabaseClient.auth.signUp({
+                        email, password,
+                        options: { data: { name } }
+                    });
+                    if (error) throw error;
+                    if (data.session) currentUser = data.user;
+                }
+
+                toggleModal('authModal');
+                await loadUserData();
+                updateUIForLoggedUser();
+                showSection('dashboard');
+                showToast('Sucesso!', isLoginMode ? 'Login realizado!' : 'Conta criada!', 'success');
+
+            } catch (error) {
+                showToast('Erro', error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                loading.classList.add('hidden');
+                btnText.classList.remove('hidden');
+            }
+        }
+
+        async function logout() {
+            await supabaseClient.auth.signOut();
+            currentUser = null;
+            updateUIForGuest();
+            showSection('home');
+            showToast('Até logo!', 'Você saiu', 'info');
+        }
+
+        function updateUIForLoggedUser() {
+            document.getElementById('loginBtn').classList.add('hidden');
+            document.getElementById('userMenuBtn').classList.remove('hidden');
+            document.getElementById('userStats').classList.remove('hidden');
+            document.getElementById('userStats').classList.add('flex');
+        }
+
+        function updateUIForGuest() {
+            document.getElementById('loginBtn').classList.remove('hidden');
+            document.getElementById('userMenuBtn').classList.add('hidden');
+            document.getElementById('userStats').classList.add('hidden');
+            document.getElementById('userStats').classList.remove('flex');
+        }
+
+        async function loadSurveys() {
+            if (!supabaseClient || !currentUser) return;
+            const loading = document.getElementById('loadingSurveys');
+            const container = document.getElementById('surveysList');
+            loading.classList.remove('hidden');
+
+            try {
+                const { data: completed } = await supabaseClient
+                    .from('survey_responses')
+                    .select('survey_id')
+                    .eq('user_id', currentUser.id);
+
+                const completedIds = completed?.map(s => s.survey_id) || [];
+
+                const { data: surveys, error } = await supabaseClient
+                    .from('surveys')
+                    .select('*')
+                    .eq('active', true)
+                    .order('reward_points', { ascending: false });
+
+                if (error) throw error;
+                container.innerHTML = '';
+
+                if (!surveys || surveys.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500 py-8">Nenhuma pesquisa disponível</p>';
+                    return;
+                }
+
+                surveys.forEach(survey => {
+                    if (completedIds.includes(survey.id)) return;
+                    const card = document.createElement('div');
+                    card.className = 'survey-card bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4';
+                    card.innerHTML = `
+                        <div class="flex items-center space-x-4 flex-1 w-full">
+                            <div class="w-16 h-16 ${survey.category === 'hot' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'} rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
+                                <i class="fas ${survey.category === 'hot' ? 'fa-fire' : 'fa-poll'}"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <h4 class="font-bold text-gray-900 text-lg">${survey.title}</h4>
+                                    ${survey.category === 'hot' ? '<span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">HOT</span>' : ''}
+                                </div>
+                                <p class="text-gray-600 text-sm mb-2">${survey.description}</p>
+                                <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                    <span><i class="far fa-clock mr-1"></i> ${survey.estimated_time} min</span>
+                                    <span><i class="fas fa-tag mr-1"></i> ${survey.category}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4 w-full md:w-auto justify-between md:justify-end">
+                            <div class="text-right">
+                                <p class="text-2xl font-bold text-brand-600">R$ ${survey.reward_money}</p>
+                                <p class="text-sm text-gray-500">${survey.reward_points} pts</p>
+                            </div>
+                            <button onclick="startSurvey('${survey.id}')" class="bg-brand-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-brand-700 transition shadow-lg">Iniciar</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                container.innerHTML = '<p class="text-center text-red-500">Erro ao carregar</p>';
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        async function startSurvey(surveyId) {
+            try {
+                const { data: survey, error } = await supabaseClient
+                    .from('surveys')
+                    .select('*, questions:survey_questions(*)')
+                    .eq('id', surveyId)
+                    .single();
+                if (error) throw error;
+
+                currentSurvey = survey;
+                currentQuestion = 0;
+                surveyAnswers = [];
+                document.getElementById('surveyTitle').textContent = survey.title;
+                document.getElementById('totalQ').textContent = survey.questions.length;
+                document.getElementById('surveyModal').classList.remove('hidden');
+                renderQuestion();
+            } catch (error) {
+                showToast('Erro', 'Erro ao carregar pesquisa', 'error');
+            }
+        }
+
+        function renderQuestion() {
+            const question = currentSurvey.questions[currentQuestion];
+            const content = document.getElementById('surveyContent');
+            document.getElementById('currentQ').textContent = currentQuestion + 1;
+            
+            const optionsHtml = question.options.map((opt, idx) => `
+                <label class="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition">
+                    <input type="radio" name="answer" value="${idx}" class="w-5 h-5 text-brand-600" required>
+                    <span class="ml-3 font-medium text-gray-700">${opt}</span>
+                </label>
+            `).join('');
+
+            content.innerHTML = `<div class="space-y-6"><h4 class="text-lg font-medium text-gray-900">${question.question_text}</h4><div class="space-y-3">${optionsHtml}</div></div>`;
+
+            const nextBtn = document.getElementById('nextQBtn');
+            if (currentQuestion === currentSurvey.questions.length - 1) {
+                nextBtn.textContent = 'Finalizar';
+                nextBtn.onclick = finishSurvey;
+            } else {
+                nextBtn.textContent = 'Próxima';
+                nextBtn.onclick = nextQuestion;
+            }
+        }
+
+        function nextQuestion() {
+            const selected = document.querySelector('input[name="answer"]:checked');
+            if (!selected) { showToast('Atenção', 'Selecione uma opção', 'warning'); return; }
+            surveyAnswers.push({ question_id: currentSurvey.questions[currentQuestion].id, answer: selected.value });
+            currentQuestion++;
+            renderQuestion();
+        }
+
+        async function finishSurvey() {
+            const selected = document.querySelector('input[name="answer"]:checked');
+            if (!selected) { showToast('Atenção', 'Selecione uma opção', 'warning'); return; }
+            surveyAnswers.push({ question_id: currentSurvey.questions[currentQuestion].id, answer: selected.value });
+
+            try {
+                await supabaseClient.from('survey_responses').insert([{
+                    user_id: currentUser.id,
+                    survey_id: currentSurvey.id,
+                    answers: surveyAnswers,
+                    reward_points: currentSurvey.reward_points,
+                    reward_money: currentSurvey.reward_money
+                }]);
+
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('points, balance, surveys_completed, xp, level')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                const newXp = profile.xp + (currentSurvey.reward_points / 10);
+                let newLevel = profile.level;
+                if (newXp >= 1000 && profile.level === 'Bronze') newLevel = 'Prata';
+                else if (newXp >= 5000 && profile.level === 'Prata') newLevel = 'Ouro';
+
+                await supabaseClient.from('profiles').update({
+                    points: profile.points + currentSurvey.reward_points,
+                    balance: profile.balance + parseFloat(currentSurvey.reward_money),
+                    surveys_completed: profile.surveys_completed + 1,
+                    xp: newXp,
+                    level: newLevel
+                }).eq('id', currentUser.id);
+
+                closeSurvey();
+                await loadUserData();
+                showToast(newLevel !== profile.level ? 'Level Up!' : 'Parabéns!', newLevel !== profile.level ? `Nível ${newLevel}!` : `+R$ ${currentSurvey.reward_money}`, 'success');
+                createConfetti();
+            } catch (error) {
+                showToast('Erro', 'Erro ao salvar', 'error');
+            }
+        }
+
+        function closeSurvey() {
+            document.getElementById('surveyModal').classList.add('hidden');
+            currentSurvey = null;
+        }
+
+        function checkDailyReward(lastClaim) {
+            const btn = document.getElementById('dailyClaimBtn');
+            const timer = document.getElementById('dailyTimer');
+            if (!lastClaim) { btn.disabled = false; timer.textContent = 'Disponível!'; return; }
+            const hoursLeft = 24 - ((new Date() - new Date(lastClaim)) / (1000 * 60 * 60));
+            if (hoursLeft <= 0) {
+                btn.disabled = false; btn.textContent = 'Resgatar 50 Pontos'; timer.textContent = 'Disponível!';
+            } else {
+                btn.disabled = true; btn.textContent = 'Resgatado';
+                timer.textContent = `Próximo em: ${Math.floor(hoursLeft)}h ${Math.floor((hoursLeft % 1) * 60)}m`;
+            }
+        }
+
+        async function claimDailyReward() {
+            try {
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('points, last_daily_claim')
+                    .eq('id', currentUser.id)
+                    .single();
+                if (profile.last_daily_claim && (new Date() - new Date(profile.last_daily_claim)) < (24 * 60 * 60 * 1000)) {
+                    showToast('Aguarde', 'Já resgatou hoje!', 'warning'); return;
+                }
+                await supabaseClient.from('profiles').update({
+                    points: profile.points + 50, last_daily_claim: new Date()
+                }).eq('id', currentUser.id);
+                await loadUserData(); checkDailyReward(new Date());
+                showToast('Sucesso!', '+50 pontos!', 'success'); createConfetti();
+            } catch (error) { showToast('Erro', 'Erro ao resgatar', 'error'); }
+        }
+
+        async function handleWithdraw(e) {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            const method = document.querySelector('input[name="method"]:checked').value;
+            const btn = document.getElementById('withdrawBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading inline-block mr-2" style="width:20px;height:20px;border-color:white;border-top-color:transparent"></div> Processando...';
+
+            try {
+                const { data: profile } = await supabaseClient.from('profiles').select('balance, points').eq('id', currentUser.id).single();
+                if (profile.balance < amount) { showToast('Erro', 'Saldo insuficiente', 'error'); return; }
+
+                let destination = method === 'paypal' ? document.getElementById('paypalEmail').value : 
+                                  method === 'pix' ? document.getElementById('pixKey').value : 'giftcard';
+                
+                await supabaseClient.from('withdrawals').insert([{
+                    user_id: currentUser.id, amount: amount, method: method,
+                    destination: destination, points_cost: amount * 100, status: 'pending'
+                }]);
+
+                await supabaseClient.from('profiles').update({
+                    balance: profile.balance - amount, points: profile.points - (amount * 100)
+                }).eq('id', currentUser.id);
+
+                showToast('Solicitado!', `Saque de R$ ${amount} em análise`, 'success');
+                document.getElementById('paypalEmail').value = '';
+                document.getElementById('pixKey').value = '';
+                await loadUserData(); loadWithdrawHistory();
+            } catch (error) { showToast('Erro', error.message, 'error'); }
+            finally { btn.disabled = false; btn.textContent = 'Solicitar Saque'; }
+        }
+
+        async function loadWithdrawHistory() {
+            try {
+                const { data: withdrawals } = await supabaseClient
+                    .from('withdrawals').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+                const container = document.getElementById('withdrawHistory');
+                if (!withdrawals || withdrawals.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-4">Nenhum saque</p>'; return;
+                }
+                container.innerHTML = withdrawals.map(w => `
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas ${w.method === 'paypal' ? 'fa-paypal text-blue-600' : w.method === 'pix' ? 'fa-qrcode text-green-600' : 'fa-gift text-purple-600'} text-xl"></i>
+                            <div><p class="font-semibold text-gray-900">R$ ${w.amount}</p><p class="text-xs text-gray-500">${new Date(w.created_at).toLocaleDateString()}</p></div>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold ${w.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${w.status === 'completed' ? 'Concluído' : 'Pendente'}</span>
+                    </div>
+                `).join('');
+            } catch (error) { console.error(error); }
+        }
+
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.toggle('hidden');
+            document.body.style.overflow = modal.classList.contains('hidden') ? 'auto' : 'hidden';
+        }
+
+        function showSection(sectionId) {
+            ['home', 'dashboard', 'withdraw'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            if (sectionId === 'home') document.getElementById('home').classList.remove('hidden');
+            else if (!currentUser) { toggleModal('authModal'); return; }
+            else if (sectionId === 'dashboard') { document.getElementById('dashboard').classList.remove('hidden'); loadSurveys(); }
+            else if (sectionId === 'withdraw') { document.getElementById('withdraw').classList.remove('hidden'); loadWithdrawHistory(); }
+            window.scrollTo(0, 0);
+        }
+
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+            icon.className = 'fas text-xl ' + (type === 'success' ? 'fa-check-circle text-green-400' : type === 'error' ? 'fa-times-circle text-red-400' : 'fa-exclamation-circle text-yellow-400');
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
+        }
+
+        function createConfetti() {
+            const colors = ['#22c55e', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 5000);
+            }
+        }
+
+        document.querySelectorAll('input[name="method"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                document.getElementById('paypalField').classList.toggle('hidden', e.target.value !== 'paypal');
+                document.getElementById('pixField').classList.toggle('hidden', e.target.value !== 'pix');
+            });
+        });
+
+        setInterval(() => {
+            const base = 2847;
+            const variation = Math.floor(Math.random() * 100) - 50;
+            document.getElementById('liveUsers').textContent = `+${(base + variation).toLocaleString()} online agora`;
+        }, 5000);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            let demoBalance = 127.50;
+            setInterval(() => { 
+                demoBalance += Math.random() * 0.5; 
+                document.getElementById('demoBalance').textContent = demoBalance.toFixed(2); 
+            }, 3000);
+        });
+
+        if (supabaseClient) {
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN') { currentUser = session.user; loadUserData(); updateUIForLoggedUser(); }
+                else if (event === 'SIGNED_OUT') { currentUser = null; updateUIForGuest(); }
+            });
+        }
+    </script>
+</body>
+</html>
